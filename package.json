@@ -1,0 +1,17 @@
+{
+  "name": "runscopemaintenance",
+  "version": "1.0.0",
+  "description": "",
+  "main": "runscopeMaintenance.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "sra",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.17.1",
+    "bunyan": "^1.8.12",
+    "bunyan-format": "^0.2.1",
+    "log": "^1.4.0"
+  }
+}
