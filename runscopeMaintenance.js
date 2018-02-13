@@ -6,8 +6,10 @@ const moment = require("moment");
 const log = require("./lib/helpers/logger");
 //settings.js file with apikey, buckets to modify location on scheduled environments
 const settings = require('./settings.js');
-let {apikey, buckets, altUrl} = settings;
+let {apikey, buckets, altUrl, restoreFileNames} = settings;
 const apiUrl = "https://api.runscope.com";
+
+const testMode = true; //true to not modify schedules
 
 //array to store scheduled tests
 let testSchedules = [];
@@ -25,11 +27,9 @@ if (!((args[0] === 'pause') || (args[0] === 'resume'))) {
 
 
 
-   var operation = args[0];
-   if(args[0] === 'resume' && !args[1]) {
-   	throw new Error('FAIL: You must provide a filename to restore schedules')
-   }
-   var restoreFileName = args[1];
+   let operation = args[0];
+
+   
 log.debug(args);
 log.debug(args.length);
 const baseUrl = altUrl || apiUrl;
@@ -39,7 +39,24 @@ log.debug(baseUrl);
 
 const authHeader = `Bearer ${apikey}`;
 axios.defaults.headers.common['Authorization'] = authHeader;
-log.debug(buckets);
+
+
+if (operation === 'pause'){
+	if(args.length > 1){
+		buckets = args.slice(1)
+
+	}
+	log.debug(buckets);
+	pauseTests();
+} else if (operation === 'resume') {
+	if(!args[1]) {
+   		throw new Error('FAIL: You must provide a filename to restore schedules')
+    }	else {
+		restoreFileNames = args.slice(1)    	
+    }
+    restoreTests();
+}
+
 
 function getRunscope(endpointUrl) {
 	return axios.get(endpointUrl,);
@@ -53,7 +70,28 @@ function writeRunscopeSchedule(endpointUrl,postData) {
 	return axios.post(endpointUrl,postData);
 }
 
-(async function run() {
+async function restoreTests() {
+	try {
+		for (let i = 0; i < restoreFileNames.length; i++){
+			let thisRestoreFile = restoreFileNames[i];
+			log.info(`Restoring from ${thisRestoreFile}`);
+			var myRestoreData = JSON.parse(fs.readFileSync(thisRestoreFile, 'utf8'));
+			log.info(typeof myRestoreData);
+			
+			for (let j = 0; j < myRestoreData.length; j++){
+				let thisUrl = myRestoreData[j].url
+				log.info(thisUrl);
+				let thisData = myRestoreData[j].data
+				const createResults = await writeRunscopeSchedule(thisUrl,thisData)
+
+			}
+		}
+	} catch (e) {
+    log.warn(e);
+  }
+}
+
+async function pauseTests() {
 	try {
 		for (let i = 0; i < buckets.length; i++){
 			let bucket_key = buckets[i];
@@ -117,10 +155,14 @@ function writeRunscopeSchedule(endpointUrl,postData) {
 					}; 
 					taskList.push(deleteUrl);
 					//deleteRunscopeSchedule
-					const deleteResult = await deleteRunscopeSchedule(deleteUrl);
-					thisRestore.deleteStatus = deleteResult.status;
-					const createResults = await writeRunscopeSchedule(thisRestore.url,thisRestore.data)
-					thisRestore.restoreStatus = createResults.status
+					if (!testMode){
+						const deleteResult = await deleteRunscopeSchedule(deleteUrl);
+						thisRestore.deleteStatus = deleteResult.status;
+					} else {
+						thisRestore.deleteStatus = "test mode"
+					}
+					//const createResults = await writeRunscopeSchedule(thisRestore.url,thisRestore.data)
+					//thisRestore.restoreStatus = createResults.status
 					restoreData.push(thisRestore);
 				}
 			}
@@ -139,7 +181,7 @@ function writeRunscopeSchedule(endpointUrl,postData) {
 	} catch (e) {
     log.warn(e);
   }
-})();
+}
 //const schedUrl = `${baseUrl}/buckets/${bucket_key}/tests/${test_id}/schedules`
 //
 
