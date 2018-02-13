@@ -9,7 +9,7 @@ const settings = require('./settings.js');
 let {apikey, buckets, altUrl, restoreFileNames} = settings;
 const apiUrl = "https://api.runscope.com";
 
-const testMode = true; //true to not modify schedules
+const testMode = false; //true to not modify schedules
 
 //array to store scheduled tests
 let testSchedules = [];
