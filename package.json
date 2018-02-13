@@ -7,6 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "sra",
+  "repository" :
+    { "type" : "git",
+      "url" : "https://github.com/samaybar/runscopeMaintenance.git"
+    },
   "license": "ISC",
   "dependencies": {
     "axios": "^0.17.1",
