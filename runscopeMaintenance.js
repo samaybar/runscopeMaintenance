@@ -24,10 +24,7 @@ if (!((args[0] === 'pause') || (args[0] === 'resume'))) {
     throw new Error('FAIL: You must indicate "pause" or "resume"');
 }
 
-
-
-
-   let operation = args[0];
+let operation = args[0];
 
    
 log.debug(args);
@@ -76,11 +73,11 @@ async function restoreTests() {
 			let thisRestoreFile = restoreFileNames[i];
 			log.info(`Restoring from ${thisRestoreFile}`);
 			var myRestoreData = JSON.parse(fs.readFileSync(thisRestoreFile, 'utf8'));
-			log.info(typeof myRestoreData);
+			
 			
 			for (let j = 0; j < myRestoreData.length; j++){
 				let thisUrl = myRestoreData[j].url
-				log.info(thisUrl);
+				log.debug(thisUrl);
 				let thisData = myRestoreData[j].data
 				const createResults = await writeRunscopeSchedule(thisUrl,thisData)
 
@@ -172,26 +169,19 @@ async function pauseTests() {
 			jsonFileName = `restore-${bucket_key}-${moment().format("YYYYMMDDHmmss")}.json`;
 			writeToFile(jsonWriteData,jsonFileName);
 
-
-
-
-
-			//log.debug(schedudedEnvironments);
 		}		
 	} catch (e) {
     log.warn(e);
   }
 }
-//const schedUrl = `${baseUrl}/buckets/${bucket_key}/tests/${test_id}/schedules`
-//
 
 
 //writes data to file
 function writeToFile(outputData,fileName){
   fs.appendFile(fileName, outputData, function(err) {
     if(err) {
-        return console.log(err);
+        return log.warn(err);
     }
-    console.log("Saved data to: "+ fileName);
+    log.info("Saved data to: "+ fileName);
   });  
 }
